@@ -40,8 +40,10 @@ pattern s = map
 -- Ejercicio 3: Obtiene el valor registrado en una captura determinada. Se puede suponer que la captura está definida en el contexto.
 type PathContext = [(String, String)]
 
+-- Busca el segundo elemento de la tupla del primer elemento de la lista (que
+-- deberia ser el unico) que tenga como primer elemento de la tupla cierto argumento.
 get :: String -> PathContext -> String
-get s = undefined
+get s = snd.head.filter ((==s).fst)
 
 -- Ejercicio 4: Dadas una ruta particionada y un patrón de URL, trata de aplicar el patrón a la ruta y devuelve, en caso de que
 --              la ruta sea un prefijo válido para el patrón, el resto de la ruta que no se haya llegado a consumir y el contexto capturado hasta el punto alcanzado.
