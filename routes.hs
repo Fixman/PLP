@@ -25,6 +25,8 @@ split d = foldl
 
 -- Ejercicio 2: A partir de una cadena que denota un patrón de URL se deberá construir la secuencia de literales y capturas correspondiente.
 
+-- Pattern devuelve 'Capture s' si s es de la forma ":s", y 'Literal s' sino.
+-- TODO: Hacer que no necesariamente tenga que tomar un argumento.
 pattern :: String -> [PathPattern]
 pattern s = map
         (\ (x:xs) ->
@@ -33,7 +35,7 @@ pattern s = map
                 else
                         Literal (x:xs)
         )
-        (split '/' s)
+        $ split '/' s
 
 -- Ejercicio 3: Obtiene el valor registrado en una captura determinada. Se puede suponer que la captura está definida en el contexto.
 type PathContext = [(String, String)]
