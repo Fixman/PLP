@@ -40,6 +40,8 @@ pattern s = map
 -- Ejercicio 3: Obtiene el valor registrado en una captura determinada. Se puede suponer que la captura está definida en el contexto.
 type PathContext = [(String, String)]
 
+-- Busca el segundo elemento de la tupla del primer elemento de la lista (que
+-- deberia ser el unico) que tenga como primer elemento de la tupla cierto argumento.
 get :: String -> PathContext -> String
 get s = snd.head.filter ((==s).fst)
 
