@@ -25,17 +25,16 @@ split d = foldl
 
 -- Ejercicio 2: A partir de una cadena que denota un patrón de URL se deberá construir la secuencia de literales y capturas correspondiente.
 
--- Pattern devuelve 'Capture s' si s es de la forma ":s", y 'Literal s' sino.
--- TODO: Hacer que no necesariamente tenga que tomar un argumento.
+-- parseEntity usa pattern matching para determinar si un argumento es una
+-- captura o un literal.
+-- pattern usa split para separar un string en una lista de entities y luego
+-- parsea cada una de ellas.
+parseEntity :: String -> PathPattern
+parseEntity (':':xs) = Capture xs
+parseEntity x = Literal x
+
 pattern :: String -> [PathPattern]
-pattern s = map
-        (\ (x:xs) ->
-                if x == ':' then
-                        Capture xs
-                else
-                        Literal (x:xs)
-        )
-        $ split '/' s
+pattern = map parseEntity . split '/'
 
 -- Ejercicio 3: Obtiene el valor registrado en una captura determinada. Se puede suponer que la captura está definida en el contexto.
 type PathContext = [(String, String)]
