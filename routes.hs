@@ -9,6 +9,10 @@ data Routes f = Route [PathPattern] f | Scope [PathPattern] (Routes f) | Many [R
 
 -- Ejercicio 1: Dado un elemento separador y una lista, se deber a partir la lista en sublistas de acuerdo a la aparicíon del separador (sin incluirlo).
 
+-- Split reduce un separador y un string a una lista de string.
+-- Dado un separador y un elemento de un string, la funcion lambda agrega este
+-- elemento al final de la ultima lista a menos que el elemento sea el separador.
+-- En ese caso, crea una lista nueva (string vacio) al final de la lista de lista.
 split :: Eq a => a -> [a] -> [[a]]
 split d = foldl
         (\ l c -> if c == d then
