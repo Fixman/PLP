@@ -15,7 +15,8 @@ data Routes f = Route [PathPattern] f | Scope [PathPattern] (Routes f) | Many [R
 -- En ese caso, crea una lista nueva (string vacio) al final de la lista de lista.
 split :: Eq a => a -> [a] -> [[a]]
 split d = foldl
-        (\ l c -> if c == d then
+        (\ l c ->
+                if c == d then
                         l ++ [[]]
                 else
                         init l ++ [last l ++ [c]]
@@ -23,8 +24,18 @@ split d = foldl
         [[]]
 
 -- Ejercicio 2: A partir de una cadena que denota un patrón de URL se deberá construir la secuencia de literales y capturas correspondiente.
+
+-- Pattern devuelve 'Capture s' si s es de la forma ":s", y 'Literal s' sino.
+-- TODO: Hacer que no necesariamente tenga que tomar un argumento.
 pattern :: String -> [PathPattern]
-pattern = undefined
+pattern s = map
+        (\ (x:xs) ->
+                if x == ':' then
+                        Capture xs
+                else
+                        Literal (x:xs)
+        )
+        $ split '/' s
 
 -- Ejercicio 3: Obtiene el valor registrado en una captura determinada. Se puede suponer que la captura está definida en el contexto.
 type PathContext = [(String, String)]
