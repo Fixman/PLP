@@ -41,7 +41,7 @@ pattern s = map
 type PathContext = [(String, String)]
 
 get :: String -> PathContext -> String
-get s t = snd $ head $ filter (\ (a, b) -> a == s) t
+get s t = snd $ head $ filter ((==s).fst) t
 
 -- Ejercicio 4: Dadas una ruta particionada y un patrón de URL, trata de aplicar el patrón a la ruta y devuelve, en caso de que
 --              la ruta sea un prefijo válido para el patrón, el resto de la ruta que no se haya llegado a consumir y el contexto capturado hasta el punto alcanzado.
