@@ -51,7 +51,7 @@ get s = snd.head.filter ((==s).fst)
 captures :: [String] -> [PathPattern] -> [(String, String)]
 captures h [] = []
 captures (h:hs) (Literal l:ls) = captures hs ls
-captures (h:hs) (Capture l:ls) = (l, h) : (captures hs ls)
+captures (h:hs) (Capture l:ls) = (l, h) : captures hs ls
 
 literals :: [String] -> [PathPattern] -> Maybe([String])
 literals h [] = Just h
@@ -62,7 +62,7 @@ literals (h:hs) (Literal l:ls)
         | otherwise = Nothing
 
 matches :: [String] -> [PathPattern] -> Maybe ([String], PathContext)
-matches hs ls = literals hs ls >>= (\x -> Just (x, captures hs ls))
+matches hs ls = literals hs ls >>= Just . flip (,) (captures hs ls)
 
 -- DSL para rutas
 route :: String -> a -> Routes a
