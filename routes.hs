@@ -48,9 +48,21 @@ get s = snd.head.filter ((==s).fst)
 --              la ruta sea un prefijo válido para el patrón, el resto de la ruta que no se haya llegado a consumir y el contexto capturado hasta el punto alcanzado.
 -- Se puede usar recursión explícita.
 
-matches :: [String] -> [PathPattern] -> Maybe ([String], PathContext)
-matches ss ps = undefined
+captures :: [String] -> [PathPattern] -> [(String, String)]
+captures h [] = []
+captures (h:hs) (Literal l:ls) = captures hs ls
+captures (h:hs) (Capture l:ls) = (l, h) : (captures hs ls)
 
+literals :: [String] -> [PathPattern] -> Maybe([String])
+literals h [] = Just h
+literals [] l = Nothing
+literals (h:hs) (Capture l:ls) = literals hs ls
+literals (h:hs) (Literal l:ls)
+        | h == l = literals hs ls
+        | otherwise = Nothing
+
+matches :: [String] -> [PathPattern] -> Maybe ([String], PathContext)
+matches hs ls = literals hs ls >>= (\x -> Just (x, captures hs ls))
 
 -- DSL para rutas
 route :: String -> a -> Routes a
