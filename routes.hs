@@ -74,8 +74,25 @@ scope s r = Scope (pattern s) r
 many :: [Routes a] -> Routes a
 many l = Many l
 
+-- data Routes f = Route [PathPattern] f | Scope [PathPattern] (Routes f) | Many [Routes f]
 -- Ejercicio 5: Definir el fold para el tipo Routes f y su tipo. Se puede usar recursión explícita.
-foldRoutes = undefined
+--foldrRoutes :: ([PathPattern] -> a -> c -> c) -> ([PathPattern] -> c -> c ) -> ((Routes-> c ) -> [Routes] -> c) -> Routes -> c -> c
+-- caso base, tengo un Route osea que es un caso no recursivo, aplico la funcion
+-- de reduce para este contructor, fr 
+foldRoutes fr _ _     (Route pp ff)= fr pp ff 
+-- caso donde tengo un scope, osea un pathpatter y un routes osea que es recursivo
+-- la funcion de reduce del scope es fs y toma un patpatter mas el resultado recursivo de foldRoutes
+foldRoutes fr fs fm    (Scope pp r)= fs pp $ foldRoutes fr fs fm   r 
+-- en este caso many es un array de Routes, asi que fm es la funcion de reduce 
+-- que toma el resultado del foldr sobre el array de routes. Osea que reduce
+-- el resultado de llamar foldRoutes sobre cada uno de los Routes
+foldRoutes fr fs fm   (Many r) = fm $ map (foldRoutes fr fs fm)    r
+-- test
+-- foldRoutes (\x y  -> "1") (\x y -> y ++ "2")  (\x  -> concat x) (route "/hola/chau" "mundo")
+-- foldRoutes (\x y  -> "1") (\x y -> y ++ "2")  (\x  -> concat x) ( scope   "/casa"  (route "/hola/chau" "mundo") )
+-- foldRoutes (\x y  -> "1") (\x y -> y ++ "2")  (\x  -> concat x) ( many  [( scope   "/casa"  (route "/hola/chau" "mundo") ) , ( scope   "/casa"  (route "/hola/chau" "mundo") ) , (route "/lala" "chau " ) ] )
+
+
 
 -- Auxiliar para mostrar patrones. Es la inversa de pattern.
 patternShow :: [PathPattern] -> String
@@ -86,7 +103,12 @@ patternShow ps = concat $ intersperse "/" ((map (\p -> case p of
 
 -- Ejercicio 6: Genera todos los posibles paths para una ruta definida.
 paths :: Routes a -> [String]
-paths = undefined
+paths = foldRoutes (\x _ ->   [ ( patternShow x ) ]  ) 
+                   (\x y ->  map  (\z ->  (patternShow x )++"/"  ++ z ) y )
+                   (\x -> concat x)
+-- paths ( many [ route "" "ver inicio", route "ayuda" "ver ayuda", scope "materia/:nombre/alu/:lu" $ many [ route "inscribir" "inscribe alumno", route "aprobar" "aprueba alumno" ] , route "alu/:lu/aprobadas" "ver materias aprobadas por alumno" ] )
+-- paths (  many [route "ayuda" "ver ayuda" , route "chau" "hola ", scope "/juan" (many [route "a" "b",route "c" "d"])] )
+
 
 -- Ejercicio 7: Evalúa un path con una definición de ruta y, en caso de haber coincidencia, obtiene el handler correspondiente 
 --              y el contexto de capturas obtenido.
