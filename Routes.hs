@@ -15,15 +15,23 @@ rutasStringOps = route "concat/:a/:b" (\ ctx -> (get "a" ctx) ++ (get "b" ctx) )
 -- Dado un separador y un elemento de un string, la funcion lambda agrega este
 -- elemento al final de la ultima lista a menos que el elemento sea el separador.
 -- En ese caso, crea una lista nueva (string vacio) al final de la lista de lista.
+-- La lista inicialmente esta vacia, y se le agrega el elemento inicial en el
+-- primer paso a menos que este sea el separador. En ese caso, se le agrega otra
+-- lista vacia al principio.
 split :: Eq a => a -> [a] -> [[a]]
-split d = foldl
-        (\ l c ->
-                if c == d then
-                        l ++ [[]]
+
+split d = foldr
+        (\ c l ->
+                if null l && c == d then
+                        [] : [] : l
+                else if c == d then
+                        [] : l
+                else if null l then
+                        [c] : l
                 else
-                        init l ++ [last l ++ [c]]
+                        (c : (head l)) : (tail l)
         )
-        [[]]
+        []
 
 -- Ejercicio 2: A partir de una cadena que denota un patrón de URL se deberá construir la secuencia de literales y capturas correspondiente.
 
