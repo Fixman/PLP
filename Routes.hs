@@ -16,7 +16,6 @@ rutasStringOps = route "concat/:a/:b" (\ ctx -> (get "a" ctx) ++ (get "b" ctx) )
 -- elemento al principio de la primer lista a menos que el elemento sea el separador.
 -- En ese caso, crea una lista nueva (string vacio) al principio de la lista de listas.
 split :: Eq a => a -> [a] -> [[a]]
-
 split d = foldr
         (\ c l ->
                 if c == d then
