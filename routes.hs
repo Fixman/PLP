@@ -7,6 +7,7 @@ data PathPattern = Literal String | Capture String deriving (Eq, Show)
 data Routes f = Route [PathPattern] f | Scope [PathPattern] (Routes f) | Many [Routes f] deriving Show
 
 rutasFacultad = many [ route "" "ver inicio", route "ayuda" "ver ayuda", scope "materia/:nombre/alu/:lu" $ many [ route "inscribir" "inscribe alumno", route "aprobar" "aprueba alumno" ] , route "alu/:lu/aprobadas" "ver materias aprobadas por alumno" ]
+rutasStringOps = route "concat/:a/:b" (\ ctx -> (get "a" ctx) ++ (get "b" ctx) )
 
 -- Ejercicio 1: Dado un elemento separador y una lista, se deber a partir la lista en sublistas de acuerdo a la aparicíon del separador (sin incluirlo).
 
@@ -136,8 +137,15 @@ exec routes path = eval routes path >>= Just . uncurry ($)
 
 -- Ejercicio 9: Permite aplicar una funci ́on sobre el handler de una ruta. Esto, por ejemplo, podría permitir la ejecución 
 --              concatenada de dos o más handlers.
+
+
+-- Hace un foldr de un Routes a otro Routes con otro tipo, donde todos los
+-- Scopes y Manys quedan igual, pero a los Route se les aplica f.
 wrap :: (a -> b) -> Routes a -> Routes b
-wrap f = undefined
+wrap f = foldrRoutes
+        (\ x y -> Route x (f y) )
+        Scope
+        Many
 
 -- Ejercicio 10: Genera un Routes que captura todas las rutas, de cualquier longitud. A todos los patrones devuelven el mismo valor. 
 --               Las capturas usadas en los patrones se deberán llamar p0, p1, etc. 
