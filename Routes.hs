@@ -35,6 +35,11 @@ split d = foldr
 
 -- Ejercicio 2: A partir de una cadena que denota un patrón de URL se deberá construir la secuencia de literales y capturas correspondiente.
 
+-- Separa un string en directorios (haciendo split por '/'), y borra los
+-- componentes vacios.
+splitDirs :: String -> [String]
+splitDirs s = filter (not . null) $ split '/' s
+
 -- parseEntity usa pattern matching para determinar si un argumento es una
 -- captura o un literal.
 -- pattern usa split para separar un string en una lista de entities y luego
@@ -44,7 +49,7 @@ parseEntity (':':xs) = Capture xs
 parseEntity x = Literal x
 
 pattern :: String -> [PathPattern]
-pattern = map parseEntity . filter (not . null) . split '/'
+pattern = map parseEntity . splitDirs
 
 -- Ejercicio 3: Obtiene el valor registrado en una captura determinada. Se puede suponer que la captura está definida en el contexto.
 type PathContext = [(String, String)]
@@ -137,7 +142,7 @@ filterSingle f a
 eval :: Routes a -> String -> Maybe (a, PathContext)
 eval f s = listToMaybe . mapMaybe
         (\ x ->
-                matches (filter (not . null) $ split '/' s) (fst x) >>=
+                matches (splitDirs s) (fst x) >>=
                 filterSingle (null . fst) >>=
                 Just . ((,) $ snd x) . snd
         )
