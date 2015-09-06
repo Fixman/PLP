@@ -22,16 +22,12 @@ split :: Eq a => a -> [a] -> [[a]]
 
 split d = foldr
         (\ c l ->
-                if null l && c == d then
-                        [] : [] : l
-                else if c == d then
+                if c == d then
                         [] : l
-                else if null l then
-                        [c] : l
                 else
                         (c : (head l)) : (tail l)
         )
-        []
+        [[]]
 
 -- Ejercicio 2: A partir de una cadena que denota un patrón de URL se deberá construir la secuencia de literales y capturas correspondiente.
 
