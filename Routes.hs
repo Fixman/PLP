@@ -153,7 +153,7 @@ eval f s = listToMaybe . mapMaybe
 
 -- Simplemente ejecuta eval, y si no devuelve Nothing entonces le aplica el
 -- primer elemento del resultado al segundo.
--- Hacerlo con uncurry ($) es metal.
+-- Hacerlo con uncurry ($) es rock.
 exec :: Routes (PathContext -> a) -> String -> Maybe a
 exec routes path = eval routes path >>= Just . uncurry ($)
 
