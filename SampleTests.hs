@@ -36,12 +36,19 @@ testsPattern = test [
 	splitSlash "/foo" ~=? ["", "foo"],
 	pattern "" ~=? [],
 	pattern "/" ~=? [],
+    pattern "/base/" ~=? [Literal "base"],
+    pattern "/base//:capture/" ~=? [Literal "base",Capture "capture"],
+    pattern ":capture" ~=? [Capture "capture"],
 	pattern "lit1/:cap1/:cap2/lit2/:cap3" ~=? [Literal "lit1", Capture "cap1", Capture "cap2", Literal "lit2", Capture "cap3"]
 	]
 
 
 testsMatches = test [
-	Just (["tpf"],[("nombreMateria","plp")]) ~=? matches (splitSlash "materias/plp/tpf") (pattern "materias/:nombreMateria")
+	Just (["tpf"],[("nombreMateria","plp")]) ~=? matches (splitSlash "materias/plp/tpf") (pattern "materias/:nombreMateria"),
+    Just (["lit2"],[("cap1","materias"),("cap2","plp")]) ~=? matches (splitSlash "materias/plp/lit/lit2") (pattern "/:cap1/:cap2/lit/"),
+    Just (["lit3"],[]) ~=? matches (splitSlash "lit/li2/lit3") (pattern "/lit/li2/"),
+    Nothing ~=? matches (splitSlash "lit") (pattern "/lit/li2/"),
+    Just (["materias","plp","tpf"],[]) ~=? matches (splitSlash "materias/plp/tpf") (pattern "")
 	]
 
 path0 = route "foo" 1
