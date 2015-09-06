@@ -127,8 +127,12 @@ eval f s = listToMaybe . mapMaybe
 
 -- Ejercicio 8: Similar a eval, pero aquí se espera que el handler sea una función que recibe como entrada el contexto 
 --              con las capturas, por lo que se devolverá el resultado de su aplicación, en caso de haber coincidencia.
+
+-- Simplemente ejecuta eval, y si no devuelve Nothing entonces le aplica el
+-- primer elemento del resultado al segundo.
+-- Hacerlo con uncurry ($) es metal.
 exec :: Routes (PathContext -> a) -> String -> Maybe a
-exec routes path = undefined
+exec routes path = eval routes path >>= Just . uncurry ($)
 
 -- Ejercicio 9: Permite aplicar una funci ́on sobre el handler de una ruta. Esto, por ejemplo, podría permitir la ejecución 
 --              concatenada de dos o más handlers.
