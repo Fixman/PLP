@@ -31,7 +31,7 @@ allTests = test [
 splitSlash = split '/'
 
 testsPattern = test [
-  splitSlash "" ~=? [],
+  splitSlash "" ~=? [""],
 	splitSlash "/" ~=? ["",""],
 	splitSlash "/foo" ~=? ["", "foo"],
 	pattern "" ~=? [],
