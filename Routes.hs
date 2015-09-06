@@ -117,6 +117,14 @@ paths f = map (patternShow . fst) $ sites f
 -- Ejercicio 7: Evalúa un path con una definición de ruta y, en caso de haber coincidencia, obtiene el handler correspondiente 
 --              y el contexto de capturas obtenido.
 
+-- Funcion auxiliar (que no puedo creer que no exista en Data.Maybe pero no
+-- encontre nada parecido): dado un elemento y una funcion booleana, devuelve
+-- Nothing o Just elemento dependiendo del resultado.
+filterSingle :: (a -> Bool) -> a -> Maybe a
+filterSingle f a
+        | f a = Just a
+        | otherwise = Nothing
+
 -- Esta funcion aprovecha funciones ya existentes para simplificar el problema.
 -- Primero, busca todos los pares (direccion, descripcion) usando sites.
 -- Luego, a cada elemento le mapea una funcion lambda que, usando monadas,
@@ -130,7 +138,7 @@ eval :: Routes a -> String -> Maybe (a, PathContext)
 eval f s = listToMaybe . mapMaybe
         (\ x ->
                 matches (filter (not . null) $ split '/' s) (fst x) >>=
-                (\ y -> if not . null . fst $ y then Nothing else Just y ) >>=
+                filterSingle (null . fst) >>=
                 Just . ((,) $ snd x) . snd
         )
         $ sites f
