@@ -4,8 +4,9 @@ import Data.List
 import Data.Maybe
 
 data PathPattern = Literal String | Capture String deriving (Eq, Show)
-
 data Routes f = Route [PathPattern] f | Scope [PathPattern] (Routes f) | Many [Routes f] deriving Show
+
+rutasFacultad = many [ route "" "ver inicio", route "ayuda" "ver ayuda", scope "materia/:nombre/alu/:lu" $ many [ route "inscribir" "inscribe alumno", route "aprobar" "aprueba alumno" ] , route "alu/:lu/aprobadas" "ver materias aprobadas por alumno" ]
 
 -- Ejercicio 1: Dado un elemento separador y una lista, se deber a partir la lista en sublistas de acuerdo a la aparicíon del separador (sin incluirlo).
 
@@ -74,25 +75,16 @@ scope s r = Scope (pattern s) r
 many :: [Routes a] -> Routes a
 many l = Many l
 
--- data Routes f = Route [PathPattern] f | Scope [PathPattern] (Routes f) | Many [Routes f]
 -- Ejercicio 5: Definir el fold para el tipo Routes f y su tipo. Se puede usar recursión explícita.
---foldrRoutes :: ([PathPattern] -> a -> c -> c) -> ([PathPattern] -> c -> c ) -> ((Routes-> c ) -> [Routes] -> c) -> Routes -> c -> c
--- caso base, tengo un Route osea que es un caso no recursivo, aplico la funcion
--- de reduce para este contructor, fr 
-foldRoutes fr _ _     (Route pp ff)= fr pp ff 
--- caso donde tengo un scope, osea un pathpatter y un routes osea que es recursivo
--- la funcion de reduce del scope es fs y toma un patpatter mas el resultado recursivo de foldRoutes
-foldRoutes fr fs fm    (Scope pp r)= fs pp $ foldRoutes fr fs fm   r 
--- en este caso many es un array de Routes, asi que fm es la funcion de reduce 
--- que toma el resultado del foldr sobre el array de routes. Osea que reduce
--- el resultado de llamar foldRoutes sobre cada uno de los Routes
-foldRoutes fr fs fm   (Many r) = fm $ map (foldRoutes fr fs fm)    r
--- test
--- foldRoutes (\x y  -> "1") (\x y -> y ++ "2")  (\x  -> concat x) (route "/hola/chau" "mundo")
--- foldRoutes (\x y  -> "1") (\x y -> y ++ "2")  (\x  -> concat x) ( scope   "/casa"  (route "/hola/chau" "mundo") )
--- foldRoutes (\x y  -> "1") (\x y -> y ++ "2")  (\x  -> concat x) ( many  [( scope   "/casa"  (route "/hola/chau" "mundo") ) , ( scope   "/casa"  (route "/hola/chau" "mundo") ) , (route "/lala" "chau " ) ] )
 
-
+-- foldrRoutes reduce un elemento (Routes f) a cierto tipo s.
+-- Para esto toma tres funciones: una que le aplica a los nodos de tipo Route, uno a Scope, y
+-- uno a Many.
+-- La implementacion es similar a la de foldr.
+foldrRoutes :: ([PathPattern] -> f -> s) -> ([PathPattern] -> s -> s) -> ([s] -> s) -> Routes f -> s
+foldrRoutes fr fs fm (Route pp ff) = fr pp ff 
+foldrRoutes fr fs fm (Scope pp r) = fs pp (foldrRoutes fr fs fm r)
+foldrRoutes fr fs fm (Many r) = fm (map (foldrRoutes fr fs fm) r)
 
 -- Auxiliar para mostrar patrones. Es la inversa de pattern.
 patternShow :: [PathPattern] -> String
@@ -102,24 +94,36 @@ patternShow ps = concat $ intersperse "/" ((map (\p -> case p of
   )) ps)
 
 -- Ejercicio 6: Genera todos los posibles paths para una ruta definida.
-paths :: Routes a -> [String]
-paths = foldRoutes (\x _ ->   [ ( patternShow x ) ]  ) 
-                   (\x y ->  map  (\z ->  (patternShow x )++"/"  ++ z ) y )
-                   (\x -> concat x)
--- paths ( many [ route "" "ver inicio", route "ayuda" "ver ayuda", scope "materia/:nombre/alu/:lu" $ many [ route "inscribir" "inscribe alumno", route "aprobar" "aprueba alumno" ] , route "alu/:lu/aprobadas" "ver materias aprobadas por alumno" ] )
--- paths (  many [route "ayuda" "ver ayuda" , route "chau" "hola ", scope "/juan" (many [route "a" "b",route "c" "d"])] )
 
+-- Funcion auxiliar que, dado un Routes, devuelve una lista de tuplas con las
+-- direcciones y descripciones de todos sus elementos.
+sites :: Routes f -> [([PathPattern], f)]
+sites = foldrRoutes (\ x y -> [(x, y)] ) (\ x y -> map (\ z -> (x ++ fst z, snd z) ) y ) concat
+
+-- Saca el primer elemento de sites (que contiene la direccion, en forma
+-- de [PathPattern]), y le aplica patternShow.
+paths :: Routes a -> [String]
+paths f = map (patternShow . fst) $ sites f
 
 -- Ejercicio 7: Evalúa un path con una definición de ruta y, en caso de haber coincidencia, obtiene el handler correspondiente 
 --              y el contexto de capturas obtenido.
-{-
-Nota: la siguiente función viene definida en el módulo Data.Maybe.
- (=<<) :: (a->Maybe b)->Maybe a->Maybe b
- f =<< m = case m of Nothing -> Nothing; Just x -> f x
--}
-eval :: Routes a -> String -> Maybe (a, PathContext)
-eval = undefined
 
+-- Esta funcion aprovecha funciones ya existentes para simplificar el problema.
+-- Primero, busca todos los pares (direccion, descripcion) usando sites.
+-- Luego, a cada elemento le mapea una funcion lambda que, usando monadas,
+-- devuelve una tupla con el segundo elemento del par de sites (descripcion) y el
+-- segundo elemento que devuelve matches (capturas) cuando se le aplica el
+-- primer elemento de sites (direccion), siempre y cuando matches no devuelva
+-- Nothing, en cuyo caso tambien devuelve Nothing.
+-- La composicion listToMaybe.mapMaybe devuelve el primer elemento que no sea
+-- Nothing de aplicarle una funcion a una lista, si existe, y Nothing sino.
+eval :: Routes a -> String -> Maybe (a, PathContext)
+eval f s = listToMaybe . mapMaybe
+        (\ x ->
+                matches (split '/' s) (fst x) >>=
+                Just . ((,) $ snd x) . snd
+        )
+        $ sites f
 
 -- Ejercicio 8: Similar a eval, pero aquí se espera que el handler sea una función que recibe como entrada el contexto 
 --              con las capturas, por lo que se devolverá el resultado de su aplicación, en caso de haber coincidencia.
