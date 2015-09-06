@@ -13,11 +13,8 @@ rutasStringOps = route "concat/:a/:b" (\ ctx -> (get "a" ctx) ++ (get "b" ctx) )
 
 -- Split reduce un separador y un string a una lista de string.
 -- Dado un separador y un elemento de un string, la funcion lambda agrega este
--- elemento al final de la ultima lista a menos que el elemento sea el separador.
--- En ese caso, crea una lista nueva (string vacio) al final de la lista de lista.
--- La lista inicialmente esta vacia, y se le agrega el elemento inicial en el
--- primer paso a menos que este sea el separador. En ese caso, se le agrega otra
--- lista vacia al principio.
+-- elemento al principio de la primer lista a menos que el elemento sea el separador.
+-- En ese caso, crea una lista nueva (string vacio) al principio de la lista de listas.
 split :: Eq a => a -> [a] -> [[a]]
 
 split d = foldr
