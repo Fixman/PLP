@@ -36,7 +36,7 @@ parseEntity (':':xs) = Capture xs
 parseEntity x = Literal x
 
 pattern :: String -> [PathPattern]
-pattern = map parseEntity . split '/'
+pattern = map parseEntity . filter (not . null) . split '/'
 
 -- Ejercicio 3: Obtiene el valor registrado en una captura determinada. Se puede suponer que la captura está definida en el contexto.
 type PathContext = [(String, String)]
@@ -121,7 +121,8 @@ paths f = map (patternShow . fst) $ sites f
 eval :: Routes a -> String -> Maybe (a, PathContext)
 eval f s = listToMaybe . mapMaybe
         (\ x ->
-                matches (split '/' s) (fst x) >>=
+                matches (filter (not . null) $ split '/' s) (fst x) >>=
+                (\ y -> if not . null . fst $ y then Nothing else Just y ) >>=
                 Just . ((,) $ snd x) . snd
         )
         $ sites f
