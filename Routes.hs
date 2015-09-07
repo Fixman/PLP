@@ -165,4 +165,9 @@ wrap f = foldrRoutes
 --               Las capturas usadas en los patrones se deberán llamar p0, p1, etc. 
 --               En este punto se permite recursión explícita.
 catch_all :: a -> Routes a
-catch_all h = undefined
+catch_all f = catch_all_i f 0 
+               where  catch_all_i = (\f i -> many [route "" f , 
+                                                      scope (":p" ++ show i) (catch_all_i f (i+1)) ])
+--catch_all f = foldl catch_all_i (route "" f) [0..]
+--                where catch_all_i = (\more i -> many [route "" f , 
+--                                                      scope (":p" ++ show i) more ])
