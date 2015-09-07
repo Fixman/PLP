@@ -74,10 +74,19 @@ path4 = many [
     ]))
   ]
 
+pathEvalCapt = many[ 
+    (scope "base"  (many [  
+        (scope "libreta" (many [ route ":lu/nombre/:nombre" "por lu"])),
+        (scope "dni" (many [ route ":lu/:nombre" "por dni"]))
+    ]))]
+
 
 testsEval = test [
 		1 ~=? justEvalP4 "",
-		4 ~=? justEvalP4 "folder/lorem"
+		4 ~=? justEvalP4 "folder/lorem",
+        Just ("por lu",[("lu","777"),("nombre","juan carlos")]) ~=? eval pathEvalCapt  "/base/libreta/777/nombre/juan carlos" ,
+        Just ( "por dni", [ ("lu","333") ,("nombre","juan carlos") ])  ~=? eval pathEvalCapt  "/base/dni/333/juan carlos"  ,
+        Nothing  ~=? eval pathEvalCapt  "/base/dni/333/juan carlos/literal"  
 	]
 	where justEvalP4 s = fst (fromJust (eval path4 s))
 
@@ -108,9 +117,23 @@ path5 = many [
   (rest "category")
   ]
 
+path6 = many [ ( route "/home/index" "Site Home" ),
+    (scope ("/home") 
+        (many [
+            route "/index" "Scope Site Home",
+            route "/search" "Scope Site Search"
+        ])),
+    (many [
+        (route "/home/index" "Many Site Home"),
+        (route "/home/search" "Many Site Search")
+        ])]
+
+
 testsPaths = test [
  	sort ["","post","post/:id","post/:id/create","post/:id/update","post/:id/delete","category","category/:id","category/:id/create","category/:id/update","category/:id/delete"] ~=?
-	 	sort (paths path5)
+	 	sort (paths path5),
+    sort ["home/index","home/index","home/search","home/index","home/search"] ~=?
+        sort (paths path6)
 	]
 
 
