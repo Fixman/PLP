@@ -136,10 +136,27 @@ testsPaths = test [
         sort (paths path6)
 	]
 
+path7 = many [ ( route "/prefix/:id" funca),
+    (scope ("/prefix") 
+        (many [
+            route "/:action/:id"  funcb ,
+            route "/:controller:/:action/:id"  funcc 
+        ])),
+    (many [
+            route "/:action/:id"  funcb ,
+            route "/:controller:/:action/:id"  funcc 
+        ])]
+    where funca = (\ctx ->  (get "id" ctx))
+          funcb = (\ctx -> (get "action" ctx) ++ (get "id" ctx))
+          funcc = (\ctx -> (get "controller" ctx) ++ (get "action" ctx) ++ (get "id" ctx))
+
 
 testsExecEntity = test [
 	Just "root_url" ~=? exec path5 "",
 	Just "post#index" ~=? exec path5 "post",
 	Just "post#show" ~=? exec path5 "post/35",
-	Just "category#create of 7" ~=? exec path5 "category/7/create"
+  Just "category#create of 7" ~=? exec path5 "category/7/create",
+	Just "category7" ~=? exec path7 "prefix/category/7",
+  Just "productview10" ~=? exec path7 "prefix/product/view/10",
+  Just "10" ~=? exec path7 "prefix/10"
 	]
